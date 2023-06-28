@@ -1,0 +1,41 @@
+using System;
+
+namespace AddNumbersWithException
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                Console.Write("Enter the first number: ");
+                int num1 = Convert.ToInt32(Console.ReadLine());
+
+                Console.Write("Enter the second number: ");
+                int num2 = Convert.ToInt32(Console.ReadLine());
+
+                int result = AddNumbers(num1, num2);
+                Console.WriteLine("The sum of {0} and {1} is {2}", num1, num2, result);
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Invalid input. Please enter valid numbers.");
+            }
+            catch (OverflowException)
+            {
+                Console.WriteLine("Number out of range. Please enter smaller values.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred: " + ex.Message);
+            }
+
+            Console.ReadKey();
+        }
+
+        static int AddNumbers(int num1, int num2)
+        {
+            return num1 + num2;
+        }
+    }
+}
