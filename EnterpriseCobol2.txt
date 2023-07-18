@@ -1,0 +1,56 @@
+000100 IDENTIFICATION DIVISION.                                         00010000
+000200 PROGRAM-ID.    CBLPGM2.                                          00020000
+000300 ENVIRONMENT DIVISION.                                            00030000
+000400 INPUT-OUTPUT SECTION.                                            00040000
+000500 FILE-CONTROL.                                                    00050000
+000600     SELECT INFILE  ASSIGN TO UT-S-INFILE.                        00060000
+000700 DATA DIVISION.                                                   00070000
+000800 FILE SECTION.                                                    00080000
+000900 FD  INFILE                                                       00090000
+001000     LABEL RECORDS STANDARD                                       00100000
+001100     BLOCK CONTAINS 0 RECORDS.                                    00110000
+001200 01  IN-REC                  PIC X(80).                           00120000
+001300 WORKING-STORAGE SECTION.                                         00130000
+001400 01  NAME-N-CNTR-TABLE.                                           00140000
+001500     05  FILLER  PIC X(21)   VALUE 'EQUILATERAL TRIANGLES'.       00150000
+001600     05  FILLER  PIC 9(04).                                       00160000
+001700     05  FILLER  PIC X(21)   VALUE 'ISOSCELES TRIANGLES'.         00170000
+001800     05  FILLER  PIC 9(04).                                       00180000
+001900     05  FILLER  PIC X(21)   VALUE 'SCALENE TRIANGLES'.           00190000
+002000     05  FILLER  PIC 9(04).                                       00200000
+002100     05  FILLER  PIC X(21)   VALUE 'INVALID TRIANGLES'.           00210000
+002200     05  FILLER  PIC 9(04).                                       00220000
+002300 01  N-N-C-TABLE             REDEFINES  NAME-N-CNTR-TABLE.        00230000
+002400     05  N-N-C               OCCURS 4 TIMES                       00240000
+002500                             INDEXED BY TX.                       00250000
+002600         10  N-NAME          PIC X(21).                           00260000
+002700         10  N-CNTR          PIC 9(04).                           00270000
+002800 01  OUT-OF-RECS             PIC X.                               00280000
+002900 01  TRIANGLE-TYPE           PIC 9.                               00290000
+003000 01  WORK-REC.                                                    00300000
+003100     05  SIDE-A              PIC 9(01).                           00310000
+003200     05  SIDE-B              PIC 9(01).                           00320000
+003300     05  SIDE-C              PIC 9(01).                           00330000
+003400 PROCEDURE DIVISION.                                              00340000
+003500  MAIN-PARA.                                                      00350000
+003600     PERFORM INIT-PARA.                                           00360000
+003700     PERFORM ANALYZE-NEXT-REC                                     00370000
+003800         UNTIL OUT-OF-RECS = 'Y'.                                 00380000
+003900     PERFORM ENDING-PARA.                                         00390000
+004000     GOBACK.                                                      00400000
+004100 INIT-PARA.                                                       00410000
+004200     MOVE ZERO TO N-CNTR (1) N-CNTR (2) N-CNTR (3) N-CNTR (4).    00420000
+004300     OPEN INPUT INFILE.                                           00430000
+004400     MOVE 'N' TO OUT-OF-RECS.                                     00440000
+004500 ANALYZE-NEXT-REC.                                                00450000
+004600     READ INFILE INTO WORK-REC                                    00460000
+004700        AT END                                                    00470000
+004800        MOVE 'Y' TO OUT-OF-RECS.                                  00480000
+004900     IF OUT-OF-RECS = 'N'                                         00490000
+005000        MOVE ZERO TO TRIANGLE-TYPE                                00500000
+005100        CALL 'TRITST' USING WORK-REC TRIANGLE-TYPE                00510000
+005200        SET TX TO TRIANGLE-TYPE                                   00520000
+005300        ADD 1 TO N-CNTR (TX).                                     00530000
+005400 ENDING-PARA.                                                     00540000
+005500     CLOSE INFILE.                                                00550000
+005600     CALL 'TRIRPT' USING NAME-N-CNTR-TABLE.                       00560000
