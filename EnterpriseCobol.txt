@@ -1,0 +1,99 @@
+000100 IDENTIFICATION DIVISION.                                         00010000
+000200 PROGRAM-ID.    CBLPGM1.                                          00020000
+000300*--------------------------------------------------------         00030000
+000400* Program CBLPGM1                                                 00040000
+000500* TRIANGLE TYPE                                                   00050000
+000600*--------------------------------------------------------         00060000
+000700 ENVIRONMENT DIVISION.                                            00070000
+000800 INPUT-OUTPUT SECTION.                                            00080000
+000900 FILE-CONTROL.                                                    00090000
+001000     SELECT INFILE    ASSIGN TO INFILE.                           00100000
+001100     SELECT SORT-FILE ASSIGN TO SORTFILE.                         00110000
+001200 DATA DIVISION.                                                   00120000
+001300 FILE SECTION.                                                    00130000
+001400 FD  INFILE                                                       00140000
+001500     LABEL RECORDS STANDARD                                       00150000
+001600     RECORDING MODE IS F                                          00160000
+001700     BLOCK CONTAINS 0 RECORDS.                                    00170000
+001800 01  IN-REC                  PIC X(80).                           00180000
+001900 SD  SORT-FILE.                                                   00190000
+002000 01  SORT-RECORD.                                                 00200000
+002100     05  SIDE-A              PIC 9(01).                           00210000
+002200     05  SIDE-B              PIC 9(01).                           00220000
+002300     05  SIDE-C              PIC 9(01).                           00230000
+002400     05  AREA-X              PIC 9(01).                           00240000
+002500     05  FILLER              PIC X(69).                           00250000
+002600     05  SEQ-FIELD           PIC X(08).                           00260000
+002700 WORKING-STORAGE SECTION.                                         00270000
+002800 01  STRING-LITERALS.                                             00280000
+002900     05  TRI                 PIC  X(09)   VALUE ' TRIANGLES'.     00290000
+003000     05  TRI-TYPE            OCCURS 4 TIMES                       00300000
+003100                             PIC X(11).                           00310000
+003200 01  NAME-N-CNTR-TABLE.                                           00320000
+003300     05  N-N-C               OCCURS 4 TIMES                       00330000
+003400                             INDEXED BY TX.                       00340000
+003500         10  N-NAME          PIC X(21).                           00350000
+003600         10  N-CNTR          PIC 9(04).                           00360000
+003700 01  OUT-OF-RECS             PIC X.                               00370000
+003800     88  EOF                 VALUE 'Y'.                           00380000
+003900     88  MORE-RECS           VALUE 'N'.                           00390000
+004000 01  TRIANGLE-TYPE           PIC 9.                               00400000
+004100 01  SUB1                    PIC S9(04)  COMP.                    00410000
+004200 01  WORK-REC.                                                    00420000
+004300     05  SIDE-A              PIC 9(01).                           00430000
+004400     05  SIDE-B              PIC 9(01).                           00440000
+004500     05  SIDE-C              PIC 9(01).                           00450000
+004600/                                                                 00460000
+004700*--------------------------------------------------------         00470000
+004800 PROCEDURE DIVISION.                                              00480000
+004900*--------------------------------------------------------         00490000
+005000SKIP2                                                             00500000
+005100 MAIN-PARA.                                                       00510000
+005200     MOVE 'SORTDD' TO SORT-CONTROL                                00520000
+005300     SORT SORT-FILE                                               00530000
+005400         ASCENDING  SEQ-FIELD                                     00540000
+005500         ASCENDING  SIDE-A    OF SORT-RECORD                      00550000
+005600         ASCENDING  SIDE-B    OF SORT-RECORD                      00560000
+005700         ASCENDING  SIDE-C    OF SORT-RECORD                      00570000
+005800             USING  INFILE                                        00580000
+005900             GIVING INFILE                                        00590000
+006000     DISPLAY 'THE VS COBOL II SORT-RETURN REGISTER WAS: '         00600000
+006100              SORT-RETURN                                         00610000
+006200     PERFORM                                                      00620000
+006300         INITIALIZE NAME-N-CNTR-TABLE                             00630000
+006400                    SUB1                                          00640000
+006500         MOVE 'EQUILATERAL' TO TRI-TYPE (1)                       00650000
+006600         MOVE 'ISOSCELES' TO TRI-TYPE (2)                         00660000
+006700         MOVE 'SCALENE' TO TRI-TYPE (3)                           00670000
+006800         MOVE 'INVALID' TO TRI-TYPE (4)                           00680000
+006900         PERFORM 4 TIMES                                          00690000
+007000             COMPUTE SUB1 = SUB1 + 1                              00700000
+007100             STRING TRI-TYPE (SUB1) DELIMITED BY SPACE            00710000
+007200                    SPACE DELIMITED BY SIZE                       00720000
+007300                    TRI   DELIMITED BY SIZE                       00730000
+007400                 INTO N-NAME (SUB1)                               00740000
+007500                 ON OVERFLOW                                      00750000
+007600                     DISPLAY 'INVALID NAME: ' N-NAME (TX)         00760000
+007700             END-STRING                                           00770000
+007800         END-PERFORM                                              00780000
+007900         OPEN INPUT INFILE                                        00790000
+008000         SET MORE-RECS TO TRUE                                    00800000
+008100     END-PERFORM                                                  00810000
+008200     PERFORM ANALYZE-NEXT-REC                                     00820000
+008300             UNTIL EOF                                            00830000
+008400     CLOSE INFILE                                                 00840000
+008500     CALL 'TRIRPT2'  USING NAME-N-CNTR-TABLE                      00850000
+008600     GOBACK.                                                      00860000
+008700*--------------------------------------------------------         00870000
+008800* Get Next Record                                                 00880000
+008900*--------------------------------------------------------         00890000
+009000 ANALYZE-NEXT-REC.                                                00900000
+009100     READ INFILE INTO WORK-REC                                    00910000
+009200         AT END                                                   00920000
+009300            SET EOF TO TRUE                                       00930000
+009400     END-READ                                                     00940000
+009500     IF MORE-RECS                                                 00950000
+009600         MOVE ZERO TO TRIANGLE-TYPE                               00960000
+009700         CALL 'TRITST2' USING WORK-REC TRIANGLE-TYPE              00970000
+009800         ADD 1 TO N-CNTR (TX)                                     00980000
+009900     END-IF.                                                      00990000
